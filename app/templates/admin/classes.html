@@ -1,0 +1,27 @@
+{% extends "shared/base.html" %}
+{% block title %}Classes{% endblock %}
+{% block content %}
+<div class="top-actions">
+  <h1>Classes & Sections</h1>
+  <a href="{{ url_for('admin.add_class') }}" class="btn">+ Add Class/Section</a>
+</div>
+<table>
+  <tr><th>Class</th><th>Section</th><th>Class Teacher</th><th>Coordinator</th><th>Students</th><th></th></tr>
+  {% for s in sections %}
+  <tr>
+    <td>{{ s.grade_name }}</td>
+    <td>{{ s.section_name }}</td>
+    <td>{{ s.teacher_name or 'Unassigned' }}</td>
+    <td>{{ s.coordinator_name or 'Unassigned' }}</td>
+    <td>{{ s.student_count }}</td>
+    <td>
+      <form method="POST" action="{{ url_for('admin.delete_class', section_id=s.section_id) }}" onsubmit="return confirm('Remove this class/section?');">
+        <button class="btn btn-danger btn-small" type="submit">Remove</button>
+      </form>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5">No classes yet.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

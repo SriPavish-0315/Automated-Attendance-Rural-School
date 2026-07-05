@@ -1,0 +1,32 @@
+{% extends "shared/base.html" %}
+{% block title %}Add Student{% endblock %}
+{% block content %}
+<h1>Add Student</h1>
+<div class="form-card">
+<form method="POST">
+  <label>Admission Number</label>
+  <input type="text" name="admission_no" required>
+
+  <label>Full Name</label>
+  <input type="text" name="full_name" required>
+
+  <label>Roll Number</label>
+  <input type="text" name="roll_number" required>
+
+  <label>Class / Section</label>
+  <select name="section_id" required>
+    {% for sec in sections %}
+    <option value="{{ sec.section_id }}">{{ sec.grade_name }} - {{ sec.section_name }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Parent Name</label>
+  <input type="text" name="parent_name">
+
+  <label>Parent Contact</label>
+  <input type="text" name="parent_contact">
+
+  <button type="submit" class="btn">Save Student</button>
+</form>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "shared/base.html" %}
+{% block title %}Section Detail{% endblock %}
+{% block content %}
+<h1>{{ section.grade_name }} - {{ section.section_name }}</h1>
+<p>Class Teacher: {{ section.teacher_name or 'Unassigned' }}</p>
+
+<form method="GET" style="margin-bottom:16px;">
+  <label>View attendance for date</label>
+  <input type="date" name="date" value="{{ date or '' }}" onchange="this.form.submit()">
+</form>
+
+<table>
+  <tr><th>Roll No</th><th>Name</th><th>Status</th><th>Remarks</th></tr>
+  {% for r in records %}
+  <tr>
+    <td>{{ r.roll_number }}</td>
+    <td>{{ r.full_name }}</td>
+    <td>{{ r.status or 'Not marked' }}</td>
+    <td>{{ r.remarks or '-' }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="4">No students in this section.</td></tr>
+  {% endfor %}
+</table>
+
+<p style="margin-top:16px;"><a href="{{ url_for('coordinator.dashboard') }}">&larr; Back to dashboard</a></p>
+{% endblock %}

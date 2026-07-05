@@ -1,0 +1,30 @@
+{% extends "shared/base.html" %}
+{% block title %}Staff{% endblock %}
+{% block content %}
+<div class="top-actions">
+  <h1>Staff (Teachers & Coordinators)</h1>
+  <a href="{{ url_for('admin.add_staff') }}" class="btn">+ Add Staff</a>
+</div>
+<table>
+  <tr><th>Name</th><th>Username</th><th>Role</th><th>Email</th><th>Password</th><th>Status</th><th></th></tr>
+  {% for u in staff %}
+  <tr>
+    <td>{{ u.full_name }}</td>
+    <td>{{ u.username }}</td>
+    <td>{{ u.role_name }}</td>
+    <td>{{ u.email or '-' }}</td>
+    <td>{{ u.assigned_password or '-' }}</td>
+    <td>{{ u.status }}</td>
+    <td>
+      {% if u.status == 'Active' %}
+      <form method="POST" action="{{ url_for('admin.deactivate_staff', user_id=u.user_id) }}" onsubmit="return confirm('Deactivate this account?');">
+        <button class="btn btn-danger btn-small" type="submit">Deactivate</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7">No staff yet.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

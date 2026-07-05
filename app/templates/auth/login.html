@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Attendance System</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <h1>Rural School Attendance System</h1>
+    <p class="sub">Sign in to continue</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required autofocus>
+
+      <label for="password">Password</label>
+      <div style="position:relative;">
+        <input type="password" id="password" name="password" required style="width:100%;box-sizing:border-box;padding-right:52px;">
+        <button type="button" id="toggle-password" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:#4a5568;cursor:pointer;font-size:13px;">Show</button>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin-top:14px;">
+        <input type="checkbox" name="remember" style="width:auto;"> Remember me for 7 days
+      </label>
+
+      <button type="submit" class="btn" style="width:100%;">Login</button>
+    </form>
+
+    <div class="demo-creds">
+      <strong>Demo logins</strong><br>
+      Admin: admin / Admin@123<br>
+      Coordinator: coordinator1 / Coord@123<br>
+      Teacher: teacher1 / Teacher@123
+    </div>
+  </div>
+</div>
+<script>
+  const passwordInput = document.getElementById('password');
+  const toggleButton = document.getElementById('toggle-password');
+
+  if (passwordInput && toggleButton) {
+    toggleButton.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      toggleButton.textContent = isPassword ? 'Hide' : 'Show';
+    });
+  }
+</script>
+</body>
+</html>

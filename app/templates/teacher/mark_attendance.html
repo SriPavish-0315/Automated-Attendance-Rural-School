@@ -1,0 +1,37 @@
+{% extends "shared/base.html" %}
+{% block title %}Mark Attendance{% endblock %}
+{% block content %}
+<h1>Mark Attendance - {{ section.grade_name }} {{ section.section_name }}</h1>
+
+<form method="GET" style="margin-bottom:16px;">
+  <label>Date</label>
+  <input type="date" name="date" value="{{ attendance_date }}" onchange="this.form.submit()">
+</form>
+
+<form method="POST">
+  <input type="hidden" name="attendance_date" value="{{ attendance_date }}">
+  <table>
+    <tr><th>Roll No</th><th>Name</th><th>Status</th><th>Remarks</th></tr>
+    {% for s in students %}
+    <tr>
+      <td>{{ s.roll_number }}</td>
+      <td>{{ s.full_name }}</td>
+      <td>
+        <input type="hidden" name="student_id" value="{{ s.student_id }}">
+        <select name="status_{{ s.student_id }}" class="status-select">
+          {% for st in statuses %}
+          <option value="{{ st }}" {% if s.status == st %}selected{% elif not s.status and st == 'Present' %}selected{% endif %}>{{ st }}</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td>
+        <input type="text" name="remarks_{{ s.student_id }}" value="{{ s.remarks or '' }}" class="remarks-input" placeholder="optional">
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4">No students in this section.</td></tr>
+    {% endfor %}
+  </table>
+  <button type="submit" class="btn">Save Attendance</button>
+</form>
+{% endblock %}

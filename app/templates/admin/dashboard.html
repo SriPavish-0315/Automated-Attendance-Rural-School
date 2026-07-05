@@ -1,0 +1,28 @@
+{% extends "shared/base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h1>Administrator Dashboard</h1>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="num">{{ total_students }}</div><div class="label">Active Students</div></div>
+  <div class="stat-card"><div class="num">{{ total_teachers }}</div><div class="label">Teachers</div></div>
+  <div class="stat-card"><div class="num">{{ total_coordinators }}</div><div class="label">Coordinators</div></div>
+  <div class="stat-card"><div class="num">{{ total_classes }}</div><div class="label">Class Sections</div></div>
+  <div class="stat-card"><div class="num">{{ today_attendance }}</div><div class="label">Attendance Marks Today</div></div>
+</div>
+
+<h2>Recent Activity</h2>
+<table>
+  <tr><th>When</th><th>User</th><th>Action</th><th>Details</th></tr>
+  {% for log in recent_logs %}
+  <tr>
+    <td>{{ log.created_at }}</td>
+    <td>{{ log.full_name or 'System' }}</td>
+    <td>{{ log.action }}</td>
+    <td>{{ log.details or '-' }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="4">No activity yet.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

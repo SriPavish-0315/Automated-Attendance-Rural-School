@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}School Attendance System{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if session.get('user_id') %}
+<header class="topbar">
+    <div class="brand">Rural School Attendance System</div>
+    <nav class="topnav">
+        {% if session.get('role') == 'Administrator' %}
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.students') }}">Students</a>
+            <a href="{{ url_for('admin.staff') }}">Staff</a>
+            <a href="{{ url_for('admin.classes') }}">Classes</a>
+        {% elif session.get('role') == 'Coordinator' %}
+            <a href="{{ url_for('coordinator.dashboard') }}">Dashboard</a>
+        {% elif session.get('role') == 'Teacher' %}
+            <a href="{{ url_for('teacher.dashboard') }}">Dashboard</a>
+        {% endif %}
+    </nav>
+    <div class="user-area">
+        <span class="role-badge">{{ session.get('role') }}</span>
+        <span>{{ session.get('full_name') }}</span>
+        <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
+    </div>
+</header>
+{% endif %}
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-stack">
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

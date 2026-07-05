@@ -1,0 +1,27 @@
+{% extends "shared/base.html" %}
+{% block title %}Coordinator Dashboard{% endblock %}
+{% block content %}
+<h1>Coordinator Dashboard</h1>
+<p>Monitoring {{ sections|length }} section(s) assigned to you.</p>
+
+<div class="section-cards">
+  {% for s in sections %}
+  <div class="section-card">
+    <h3>{{ s.grade_name }} - {{ s.section_name }}</h3>
+    <p>Class Teacher: {{ s.teacher_name or 'Unassigned' }}</p>
+    <p>Students: {{ s.student_count }}</p>
+    <p>
+      Today's attendance:
+      {% if s.marked_today > 0 %}
+        <span class="badge-ok">Marked ({{ s.marked_today }}/{{ s.student_count }})</span>
+      {% else %}
+        <span class="badge-pending">Not yet marked</span>
+      {% endif %}
+    </p>
+    <a href="{{ url_for('coordinator.section_detail', section_id=s.section_id) }}" class="btn btn-small">View Details</a>
+  </div>
+  {% else %}
+  <p>No sections assigned to you yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

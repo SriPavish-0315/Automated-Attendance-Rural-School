@@ -1,0 +1,26 @@
+{% extends "shared/base.html" %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block content %}
+<h1>Teacher Dashboard</h1>
+
+<div class="section-cards">
+  {% for s in sections %}
+  <div class="section-card">
+    <h3>{{ s.grade_name }} - {{ s.section_name }}</h3>
+    <p>Students: {{ s.student_count }}</p>
+    <p>
+      Today:
+      {% if s.marked_today > 0 %}
+        <span class="badge-ok">Marked ({{ s.marked_today }}/{{ s.student_count }})</span>
+      {% else %}
+        <span class="badge-pending">Not marked yet</span>
+      {% endif %}
+    </p>
+    <a href="{{ url_for('teacher.mark_attendance', section_id=s.section_id, date=today) }}" class="btn btn-small">Mark Attendance</a>
+    <a href="{{ url_for('teacher.history', section_id=s.section_id) }}" class="btn btn-small" style="background:#6b7a89;">History</a>
+  </div>
+  {% else %}
+  <p>No sections assigned to you yet. Ask the administrator to assign you as class teacher.</p>
+  {% endfor %}
+</div>
+{% endblock %}

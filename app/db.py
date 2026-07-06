@@ -42,6 +42,14 @@ def init_db(app):
     if "assigned_password" not in columns:
         conn.execute("ALTER TABLE users ADD COLUMN assigned_password TEXT")
 
+    student_columns = {row[1] for row in conn.execute("PRAGMA table_info(students)").fetchall()}
+    if "student_contact" not in student_columns:
+        conn.execute("ALTER TABLE students ADD COLUMN student_contact TEXT")
+
+    conn.execute(
+        "UPDATE students SET student_contact = parent_contact WHERE (student_contact IS NULL OR student_contact = '') AND parent_contact IS NOT NULL"
+    )
+
     conn.execute(
         "UPDATE users SET assigned_password = username WHERE assigned_password IS NULL AND username IS NOT NULL"
     )

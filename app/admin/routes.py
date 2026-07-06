@@ -64,7 +64,7 @@ def add_student():
         try:
             db.execute(
                 """INSERT INTO students (admission_no, full_name, roll_number, section_id,
-                   parent_name, parent_contact, status) VALUES (?, ?, ?, ?, ?, ?, 'Active')""",
+                   parent_name, parent_contact, student_contact, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')""",
                 (
                     request.form["admission_no"].strip(),
                     request.form["full_name"].strip(),
@@ -72,6 +72,7 @@ def add_student():
                     request.form["section_id"],
                     request.form.get("parent_name", "").strip(),
                     request.form.get("parent_contact", "").strip(),
+                    request.form.get("student_contact", "").strip(),
                 ),
             )
             db.commit()

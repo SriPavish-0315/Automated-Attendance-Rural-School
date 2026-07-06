@@ -94,8 +94,8 @@ def seed():
         if cur.fetchone() is None:
             cur.execute(
                 """INSERT INTO students (admission_no, full_name, roll_number, section_id,
-                   parent_name, parent_contact, status) VALUES (?, ?, ?, ?, ?, ?, 'Active')""",
-                (adm_no, name, roll, section_id, f"Parent of {name}", "9999999999"),
+                   parent_name, parent_contact, student_contact, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')""",
+                (adm_no, name, roll, section_id, f"Parent of {name}", "9999999999", "8888888888"),
             )
     conn.commit()
     conn.close()

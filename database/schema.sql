@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS students (
     section_id    INTEGER NOT NULL REFERENCES sections(section_id),
     parent_name   TEXT,
     parent_contact TEXT,
+    student_contact TEXT,
     status        TEXT NOT NULL DEFAULT 'Active',
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );

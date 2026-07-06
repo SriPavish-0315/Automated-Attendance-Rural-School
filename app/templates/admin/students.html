@@ -14,7 +14,7 @@
     <td>{{ s.roll_number }}</td>
     <td>{{ s.grade_name }} - {{ s.section_name }}</td>
     <td>{{ s.parent_name or '-' }}</td>
-    <td>{{ s.parent_contact or '-' }}</td>
+    <td>{{ s.student_contact or s.parent_contact or '-' }}</td>
     <td>
       <form method="POST" action="{{ url_for('admin.delete_student', student_id=s.student_id) }}" onsubmit="return confirm('Remove this student?');">
         <button class="btn btn-danger btn-small" type="submit">Remove</button>

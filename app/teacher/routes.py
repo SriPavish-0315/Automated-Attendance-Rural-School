@@ -55,6 +55,18 @@ def mark_attendance(section_id):
                        DO UPDATE SET status=excluded.status, remarks=excluded.remarks, marked_by=excluded.marked_by""",
                     (sid, section_id, session["user_id"], attendance_date, status, remarks),
                 )
+            coordinator = db.execute(
+                "SELECT coordinator_id FROM sections WHERE section_id = ?",
+                (section_id,),
+            ).fetchone()
+            if coordinator and coordinator["coordinator_id"]:
+                db.execute(
+                    "INSERT INTO notifications (user_id, message) VALUES (?, ?)",
+                    (
+                        coordinator["coordinator_id"],
+                        f"Attendance for {section['grade_name']} {section['section_name']} on {attendance_date} has been marked.",
+                    ),
+                )
             db.commit()
             log_audit(
                 db, session["user_id"], "ATTENDANCE_MARKED",

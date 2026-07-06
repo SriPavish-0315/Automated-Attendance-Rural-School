@@ -4,6 +4,20 @@
 <h1>Coordinator Dashboard</h1>
 <p>Monitoring {{ sections|length }} section(s) assigned to you.</p>
 
+{% if notifications %}
+<div class="notifications-panel">
+  <h2>Recent updates</h2>
+  <ul class="notification-list">
+    {% for n in notifications %}
+    <li>
+      {{ n.message }}<br>
+      <small>{{ n.created_at }}</small>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
 <div class="section-cards">
   {% for s in sections %}
   <div class="section-card">
@@ -17,6 +31,9 @@
       {% else %}
         <span class="badge-pending">Not yet marked</span>
       {% endif %}
+    </p>
+    <p>
+      Present: {{ s.present_today }} | Absent: {{ s.absent_today }} | Not marked: {{ s.student_count - s.marked_today }}{% if s.other_today %} | Other: {{ s.other_today }}{% endif %}
     </p>
     <a href="{{ url_for('coordinator.section_detail', section_id=s.section_id) }}" class="btn btn-small">View Details</a>
   </div>

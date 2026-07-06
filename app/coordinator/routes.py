@@ -1,3 +1,4 @@
+from datetime import date as date_cls
 from flask import Blueprint, render_template, request, session
 from app.db import get_db
 from app.decorators import role_required
@@ -14,7 +15,10 @@ def dashboard():
     my_sections = db.execute(
         """SELECT sec.section_id, c.grade_name, sec.section_name, t.full_name AS teacher_name,
                   (SELECT COUNT(*) FROM students st WHERE st.section_id=sec.section_id AND st.status='Active') AS student_count,
-                  (SELECT COUNT(*) FROM attendance a WHERE a.section_id=sec.section_id AND a.attendance_date=date('now')) AS marked_today
+                  (SELECT COUNT(*) FROM attendance a WHERE a.section_id=sec.section_id AND a.attendance_date=date('now')) AS marked_today,
+                  (SELECT COUNT(*) FROM attendance a WHERE a.section_id=sec.section_id AND a.attendance_date=date('now') AND a.status='Present') AS present_today,
+                  (SELECT COUNT(*) FROM attendance a WHERE a.section_id=sec.section_id AND a.attendance_date=date('now') AND a.status='Absent') AS absent_today,
+                  (SELECT COUNT(*) FROM attendance a WHERE a.section_id=sec.section_id AND a.attendance_date=date('now') AND a.status!='Present' AND a.status!='Absent') AS other_today
            FROM sections sec
            JOIN classes c ON c.class_id = sec.class_id
            LEFT JOIN users t ON t.user_id = sec.teacher_id
@@ -22,7 +26,11 @@ def dashboard():
            ORDER BY c.grade_name, sec.section_name""",
         (session["user_id"],),
     ).fetchall()
-    return render_template("coordinator/dashboard.html", sections=my_sections)
+    notifications = db.execute(
+        "SELECT notification_id, message, created_at FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 5",
+        (session["user_id"],),
+    ).fetchall()
+    return render_template("coordinator/dashboard.html", sections=my_sections, notifications=notifications)
 
 
 @coordinator_bp.route("/section/<int:section_id>")
@@ -39,9 +47,9 @@ def section_detail(section_id):
     if section is None:
         return "Not authorized for this section.", 403
 
-    date = request.args.get("date")
-    date_clause = "= date(?)" if date else "= date('now')"
-    params = (date,) if date else ()
+    date = request.args.get("date") or date_cls.today().isoformat()
+    date_clause = "= date(?)"
+    params = (date,)
 
     records = db.execute(
         f"""SELECT s.full_name, s.roll_number, a.status, a.remarks

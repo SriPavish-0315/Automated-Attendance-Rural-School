@@ -3,10 +3,11 @@
 {% block content %}
 <h1>{{ section.grade_name }} - {{ section.section_name }}</h1>
 <p>Class Teacher: {{ section.teacher_name or 'Unassigned' }}</p>
+<p>Date: {{ date }}</p>
 
 <form method="GET" style="margin-bottom:16px;">
   <label>View attendance for date</label>
-  <input type="date" name="date" value="{{ date or '' }}" onchange="this.form.submit()">
+  <input type="date" name="date" value="{{ date }}" onchange="this.form.submit()">
 </form>
 
 <table>

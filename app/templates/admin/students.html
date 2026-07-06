@@ -12,11 +12,15 @@
     <td>{{ s.admission_no }}</td>
     <td>{{ s.full_name }}</td>
     <td>{{ s.roll_number }}</td>
-    <td>{{ s.grade_name }} - {{ s.section_name }}</td>
+    <td>
+      {{ s.grade_name }} - {{ s.section_name }}<br>
+      <small>Teacher: {{ s.teacher_name or 'Not assigned' }}</small>
+    </td>
     <td>{{ s.parent_name or '-' }}</td>
     <td>{{ s.student_contact or s.parent_contact or '-' }}</td>
     <td>
-      <form method="POST" action="{{ url_for('admin.delete_student', student_id=s.student_id) }}" onsubmit="return confirm('Remove this student?');">
+      <a class="btn btn-secondary btn-small" href="{{ url_for('admin.edit_student', student_id=s.student_id) }}">Edit</a>
+      <form method="POST" action="{{ url_for('admin.delete_student', student_id=s.student_id) }}" onsubmit="return confirm('Remove this student?');" style="display:inline;">
         <button class="btn btn-danger btn-small" type="submit">Remove</button>
       </form>
     </td>

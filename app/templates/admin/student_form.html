@@ -1,35 +1,35 @@
 {% extends "shared/base.html" %}
-{% block title %}Add Student{% endblock %}
+{% block title %}{% if student %}Edit Student{% else %}Add Student{% endif %}{% endblock %}
 {% block content %}
-<h1>Add Student</h1>
+<h1>{% if student %}Edit Student{% else %}Add Student{% endif %}</h1>
 <div class="form-card">
 <form method="POST">
   <label>Admission Number</label>
-  <input type="text" name="admission_no" required>
+  <input type="text" name="admission_no" value="{{ student.admission_no if student else '' }}" required>
 
   <label>Full Name</label>
-  <input type="text" name="full_name" required>
+  <input type="text" name="full_name" value="{{ student.full_name if student else '' }}" required>
 
   <label>Roll Number</label>
-  <input type="text" name="roll_number" required>
+  <input type="text" name="roll_number" value="{{ student.roll_number if student else '' }}" required>
 
   <label>Class / Section</label>
   <select name="section_id" required>
     {% for sec in sections %}
-    <option value="{{ sec.section_id }}">{{ sec.grade_name }} - {{ sec.section_name }}</option>
+    <option value="{{ sec.section_id }}" {% if student and student.section_id == sec.section_id %}selected{% endif %}>{{ sec.grade_name }} - {{ sec.section_name }}</option>
     {% endfor %}
   </select>
 
   <label>Parent Name</label>
-  <input type="text" name="parent_name">
+  <input type="text" name="parent_name" value="{{ student.parent_name if student else '' }}">
 
   <label>Parent Contact</label>
-  <input type="text" name="parent_contact">
+  <input type="text" name="parent_contact" value="{{ student.parent_contact if student else '' }}">
 
   <label>Student Contact</label>
-  <input type="text" name="student_contact">
+  <input type="text" name="student_contact" value="{{ student.student_contact if student else '' }}">
 
-  <button type="submit" class="btn">Save Student</button>
+  <button type="submit" class="btn">{% if student %}Update Student{% else %}Save Student{% endif %}</button>
 </form>
 </div>
 {% endblock %}

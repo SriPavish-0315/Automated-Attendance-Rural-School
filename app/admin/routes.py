@@ -43,9 +43,12 @@ def dashboard():
 def students():
     db = get_db()
     rows = db.execute(
-        """SELECT s.*, c.grade_name, sec.section_name FROM students s
+        """SELECT s.*, c.grade_name, sec.section_name,
+                  t.full_name AS teacher_name
+           FROM students s
            JOIN sections sec ON sec.section_id = s.section_id
            JOIN classes c ON c.class_id = sec.class_id
+           LEFT JOIN users t ON t.user_id = sec.teacher_id
            ORDER BY s.full_name"""
     ).fetchall()
     return render_template("admin/students.html", students=rows)
@@ -83,6 +86,46 @@ def add_student():
             flash(f"Error adding student: {e}", "error")
 
     return render_template("admin/student_form.html", sections=sections)
+
+
+@admin_bp.route("/students/<int:student_id>/edit", methods=["GET", "POST"])
+@role_required("Administrator")
+def edit_student(student_id):
+    db = get_db()
+    student = db.execute("SELECT * FROM students WHERE student_id=? AND status='Active'", (student_id,)).fetchone()
+    if student is None:
+        flash("Student not found.", "error")
+        return redirect(url_for("admin.students"))
+
+    sections = db.execute(
+        """SELECT sec.section_id, c.grade_name, sec.section_name FROM sections sec
+           JOIN classes c ON c.class_id = sec.class_id"""
+    ).fetchall()
+
+    if request.method == "POST":
+        try:
+            db.execute(
+                """UPDATE students SET admission_no=?, full_name=?, roll_number=?, section_id=?,
+                   parent_name=?, parent_contact=?, student_contact=? WHERE student_id=?""",
+                (
+                    request.form["admission_no"].strip(),
+                    request.form["full_name"].strip(),
+                    request.form["roll_number"].strip(),
+                    request.form["section_id"],
+                    request.form.get("parent_name", "").strip(),
+                    request.form.get("parent_contact", "").strip(),
+                    request.form.get("student_contact", "").strip(),
+                    student_id,
+                ),
+            )
+            db.commit()
+            log_audit(db, session["user_id"], "STUDENT_UPDATED", request.form["full_name"], request.remote_addr)
+            flash("Student updated successfully.", "success")
+            return redirect(url_for("admin.students"))
+        except Exception as e:
+            flash(f"Error updating student: {e}", "error")
+
+    return render_template("admin/student_form.html", sections=sections, student=student)
 
 
 @admin_bp.route("/students/<int:student_id>/delete", methods=["POST"])

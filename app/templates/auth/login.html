@@ -22,13 +22,13 @@
       {% endif %}
     {% endwith %}
 
-    <form method="POST">
+    <form method="POST" autocomplete="on">
       <label for="username">Username</label>
-      <input type="text" id="username" name="username" required autofocus>
+      <input type="text" id="username" name="username" autocomplete="username" required autofocus>
 
       <label for="password">Password</label>
       <div style="position:relative;">
-        <input type="password" id="password" name="password" required style="width:100%;box-sizing:border-box;padding-right:52px;">
+        <input type="password" id="password" name="password" autocomplete="current-password" required style="width:100%;box-sizing:border-box;padding-right:52px;">
         <button type="button" id="toggle-password" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:#4a5568;cursor:pointer;font-size:13px;">Show</button>
       </div>
 

@@ -13,7 +13,10 @@ def format_marked_time(value):
     if not value:
         return "-"
     try:
-        dt = datetime.fromisoformat(str(value).replace(" ", "T"))
+        raw_value = str(value)
+        if " " in raw_value and ":" in raw_value:
+            raw_value = raw_value.replace(" ", "T", 1)
+        dt = datetime.fromisoformat(raw_value)
     except ValueError:
         return str(value)
 

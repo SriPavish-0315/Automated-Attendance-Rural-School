@@ -6,6 +6,34 @@ from app.decorators import role_required
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
+def update_staff_account(db, user_id, payload):
+    role_row = db.execute("SELECT role_id FROM roles WHERE role_name=?", (payload.get("role"),)).fetchone()
+    if role_row is None:
+        raise ValueError("Invalid role")
+
+    updates = [
+        "username = ?",
+        "full_name = ?",
+        "email = ?",
+        "phone = ?",
+        "role_id = ?",
+    ]
+    values = [
+        payload.get("username", "").strip(),
+        payload.get("full_name", "").strip(),
+        payload.get("email", "").strip(),
+        payload.get("phone", "").strip(),
+        role_row["role_id"],
+    ]
+
+    if payload.get("password"):
+        updates.append("assigned_password = ?")
+        values.append(payload.get("password"))
+
+    values.append(user_id)
+    db.execute(f"UPDATE users SET {', '.join(updates)} WHERE user_id=?", values)
+
+
 def update_staff_section_assignment(db, user_id, role_name, section_id):
     if not user_id:
         return
@@ -181,7 +209,9 @@ def staff():
         ORDER BY u.full_name
         """
     ).fetchall()
-    return render_template("admin/staff.html", staff=rows)
+    teachers = [row for row in rows if row["role_name"] == "Teacher"]
+    coordinators = [row for row in rows if row["role_name"] == "Coordinator"]
+    return render_template("admin/staff.html", teachers=teachers, coordinators=coordinators)
 
 
 @admin_bp.route("/staff/add", methods=["GET", "POST"])
@@ -214,6 +244,31 @@ def add_staff():
             flash(f"Error creating staff account: {e}", "error")
 
     return render_template("admin/staff_form.html")
+
+
+@admin_bp.route("/staff/<int:user_id>/edit", methods=["GET", "POST"])
+@role_required("Administrator")
+def edit_staff(user_id):
+    db = get_db()
+    staff_user = db.execute(
+        "SELECT u.*, r.role_name FROM users u JOIN roles r ON r.role_id = u.role_id WHERE u.user_id=?",
+        (user_id,),
+    ).fetchone()
+    if staff_user is None:
+        flash("Staff member not found.", "error")
+        return redirect(url_for("admin.staff"))
+
+    if request.method == "POST":
+        try:
+            update_staff_account(db, user_id, request.form)
+            db.commit()
+            log_audit(db, session["user_id"], "STAFF_UPDATED", request.form.get("full_name", staff_user["full_name"]), request.remote_addr)
+            flash("Staff details updated.", "success")
+            return redirect(url_for("admin.staff"))
+        except Exception as e:
+            flash(f"Error updating staff: {e}", "error")
+
+    return render_template("admin/staff_form.html", staff=staff_user)
 
 
 @admin_bp.route("/staff/<int:user_id>/deactivate", methods=["POST"])

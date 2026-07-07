@@ -2,21 +2,23 @@
 {% block title %}Staff{% endblock %}
 {% block content %}
 <div class="top-actions">
-  <h1>Staff (Teachers & Coordinators)</h1>
+  <h1>Staff Management</h1>
   <a href="{{ url_for('admin.add_staff') }}" class="btn">+ Add Staff</a>
 </div>
+
+<h2>Teachers</h2>
 <table>
-  <tr><th>Name</th><th>Username</th><th>Role</th><th>Assigned Class</th><th>Email</th><th>Password</th><th>Status</th><th></th></tr>
-  {% for u in staff %}
+  <tr><th>Name</th><th>Username</th><th>Assigned Class</th><th>Email</th><th>Password</th><th>Status</th><th></th></tr>
+  {% for u in teachers %}
   <tr>
     <td>{{ u.full_name }}</td>
     <td>{{ u.username }}</td>
-    <td>{{ u.role_name }}</td>
     <td>{{ u.assigned_class or 'Unassigned' }}</td>
     <td>{{ u.email or '-' }}</td>
     <td>{{ u.assigned_password or '-' }}</td>
     <td>{{ u.status }}</td>
     <td>
+      <a href="{{ url_for('admin.edit_staff', user_id=u.user_id) }}" class="btn btn-small">Edit</a>
       {% if u.status == 'Active' %}
       <form method="POST" action="{{ url_for('admin.deactivate_staff', user_id=u.user_id) }}" onsubmit="return confirm('Deactivate this account?');">
         <button class="btn btn-danger btn-small" type="submit">Deactivate</button>
@@ -25,7 +27,32 @@
     </td>
   </tr>
   {% else %}
-  <tr><td colspan="8">No staff yet.</td></tr>
+  <tr><td colspan="7">No teachers yet.</td></tr>
+  {% endfor %}
+</table>
+
+<h2>Coordinators</h2>
+<table>
+  <tr><th>Name</th><th>Username</th><th>Assigned Class</th><th>Email</th><th>Password</th><th>Status</th><th></th></tr>
+  {% for u in coordinators %}
+  <tr>
+    <td>{{ u.full_name }}</td>
+    <td>{{ u.username }}</td>
+    <td>{{ u.assigned_class or 'Unassigned' }}</td>
+    <td>{{ u.email or '-' }}</td>
+    <td>{{ u.assigned_password or '-' }}</td>
+    <td>{{ u.status }}</td>
+    <td>
+      <a href="{{ url_for('admin.edit_staff', user_id=u.user_id) }}" class="btn btn-small">Edit</a>
+      {% if u.status == 'Active' %}
+      <form method="POST" action="{{ url_for('admin.deactivate_staff', user_id=u.user_id) }}" onsubmit="return confirm('Deactivate this account?');">
+        <button class="btn btn-danger btn-small" type="submit">Deactivate</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7">No coordinators yet.</td></tr>
   {% endfor %}
 </table>
 {% endblock %}

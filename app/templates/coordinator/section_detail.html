@@ -11,12 +11,13 @@
 </form>
 
 <table>
-  <tr><th>Roll No</th><th>Name</th><th>Status</th><th>Marked Time</th><th>Remarks</th></tr>
+  <tr><th>Roll No</th><th>Name</th><th>Status</th><th>Attendance %</th><th>Marked Time</th><th>Remarks</th></tr>
   {% for r in records %}
   <tr>
     <td>{{ r.roll_number }}</td>
     <td>{{ r.full_name }}</td>
     <td>{{ r.status or 'Not marked' }}</td>
+    <td>{{ r.attendance_percentage|default(0.0) }}%</td>
     <td>{{ r.formatted_time }}</td>
     <td>{{ r.remarks or '-' }}</td>
   </tr>

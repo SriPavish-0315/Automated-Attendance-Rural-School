@@ -120,6 +120,36 @@ def section_detail(section_id):
         for record in records
     ]
 
+    attendance_history = db.execute(
+        """SELECT student_id, status
+            FROM attendance
+            WHERE section_id = ? AND status IN ('Present', 'Absent')
+            ORDER BY attendance_date DESC""",
+        (section_id,),
+    ).fetchall()
+
+    history_by_student = {}
+    for entry in attendance_history:
+        student_id = entry["student_id"]
+        if student_id not in history_by_student:
+            history_by_student[student_id] = {"present": 0, "total": 0}
+        history_by_student[student_id]["total"] += 1
+        if entry["status"] == "Present":
+            history_by_student[student_id]["present"] += 1
+
+    for record in formatted_records:
+        student_id = None
+        if isinstance(record.get("student_id"), int):
+            student_id = record["student_id"]
+        if student_id is None:
+            continue
+        history = history_by_student.get(student_id, {})
+        total = history.get("total", 0)
+        if total:
+            record["attendance_percentage"] = round((history["present"] / total) * 100, 1)
+        else:
+            record["attendance_percentage"] = 0.0
+
     return render_template("coordinator/section_detail.html", section=section, records=formatted_records, date=date)
 
 

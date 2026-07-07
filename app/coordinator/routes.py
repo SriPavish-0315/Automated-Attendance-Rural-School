@@ -1,3 +1,4 @@
+from datetime import datetime
 from datetime import date as date_cls
 from flask import Blueprint, render_template, request, session
 from app.db import get_db
@@ -6,6 +7,20 @@ from app.decorators import role_required
 coordinator_bp = Blueprint(
     "coordinator", __name__, url_prefix="/coordinator"
 )
+
+
+def format_marked_time(value):
+    if not value:
+        return "-"
+    try:
+        dt = datetime.fromisoformat(str(value).replace(" ", "T"))
+    except ValueError:
+        return str(value)
+
+    hour = dt.hour
+    suffix = "am" if hour < 12 else "pm"
+    display_hour = hour % 12 or 12
+    return f"{display_hour}.{dt.strftime('%M')}.{dt.second} {suffix}"
 
 
 @coordinator_bp.route("/dashboard")
@@ -52,7 +67,7 @@ def section_detail(section_id):
     params = (date,)
 
     records = db.execute(
-        f"""SELECT s.full_name, s.roll_number, a.status, a.remarks
+        f"""SELECT s.full_name, s.roll_number, a.status, a.remarks, a.created_at
             FROM students s
             LEFT JOIN attendance a ON a.student_id = s.student_id AND a.attendance_date {date_clause}
             WHERE s.section_id = ? AND s.status='Active'
@@ -60,4 +75,12 @@ def section_detail(section_id):
         params + (section_id,),
     ).fetchall()
 
-    return render_template("coordinator/section_detail.html", section=section, records=records, date=date)
+    formatted_records = [
+        {
+            **dict(record),
+            "formatted_time": format_marked_time(record["created_at"]),
+        }
+        for record in records
+    ]
+
+    return render_template("coordinator/section_detail.html", section=section, records=formatted_records, date=date)

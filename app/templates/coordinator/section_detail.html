@@ -11,16 +11,17 @@
 </form>
 
 <table>
-  <tr><th>Roll No</th><th>Name</th><th>Status</th><th>Remarks</th></tr>
+  <tr><th>Roll No</th><th>Name</th><th>Status</th><th>Marked Time</th><th>Remarks</th></tr>
   {% for r in records %}
   <tr>
     <td>{{ r.roll_number }}</td>
     <td>{{ r.full_name }}</td>
     <td>{{ r.status or 'Not marked' }}</td>
+    <td>{{ r.formatted_time }}</td>
     <td>{{ r.remarks or '-' }}</td>
   </tr>
   {% else %}
-  <tr><td colspan="4">No students in this section.</td></tr>
+  <tr><td colspan="5">No students in this section.</td></tr>
   {% endfor %}
 </table>
 

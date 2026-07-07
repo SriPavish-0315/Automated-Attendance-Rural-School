@@ -25,5 +25,8 @@
   {% endfor %}
 </table>
 
-<p style="margin-top:16px;"><a href="{{ url_for('coordinator.dashboard') }}">&larr; Back to dashboard</a></p>
+<p style="margin-top:16px;">
+  <a href="{{ url_for('coordinator.export_section_attendance', section_id=section.section_id, date=date) }}" class="btn btn-small">Download Excel Sheet</a>
+  <a href="{{ url_for('coordinator.dashboard') }}">&larr; Back to dashboard</a>
+</p>
 {% endblock %}

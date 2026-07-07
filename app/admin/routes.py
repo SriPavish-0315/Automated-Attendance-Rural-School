@@ -6,6 +6,28 @@ from app.decorators import role_required
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
+def update_staff_section_assignment(db, user_id, role_name, section_id):
+    if not user_id:
+        return
+
+    if role_name == "Teacher":
+        column_name = "teacher_id"
+    elif role_name == "Coordinator":
+        column_name = "coordinator_id"
+    else:
+        return
+
+    if section_id is None:
+        db.execute(f"UPDATE sections SET {column_name}=NULL WHERE {column_name}=?", (user_id,))
+        return
+
+    db.execute(
+        f"UPDATE sections SET {column_name}=NULL WHERE {column_name}=? AND section_id != ?",
+        (user_id, section_id),
+    )
+    db.execute(f"UPDATE sections SET {column_name}=? WHERE section_id=?", (user_id, section_id))
+
+
 @admin_bp.route("/dashboard")
 @role_required("Administrator")
 def dashboard():
@@ -67,7 +89,7 @@ def add_student():
         try:
             db.execute(
                 """INSERT INTO students (admission_no, full_name, roll_number, section_id,
-                   parent_name, parent_contact, student_contact, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')""",
+                   parent_name, parent_contact, status) VALUES (?, ?, ?, ?, ?, ?, 'Active')""",
                 (
                     request.form["admission_no"].strip(),
                     request.form["full_name"].strip(),
@@ -75,7 +97,6 @@ def add_student():
                     request.form["section_id"],
                     request.form.get("parent_name", "").strip(),
                     request.form.get("parent_contact", "").strip(),
-                    request.form.get("student_contact", "").strip(),
                 ),
             )
             db.commit()
@@ -106,7 +127,7 @@ def edit_student(student_id):
         try:
             db.execute(
                 """UPDATE students SET admission_no=?, full_name=?, roll_number=?, section_id=?,
-                   parent_name=?, parent_contact=?, student_contact=? WHERE student_id=?""",
+                   parent_name=?, parent_contact=? WHERE student_id=?""",
                 (
                     request.form["admission_no"].strip(),
                     request.form["full_name"].strip(),
@@ -114,7 +135,6 @@ def edit_student(student_id):
                     request.form["section_id"],
                     request.form.get("parent_name", "").strip(),
                     request.form.get("parent_contact", "").strip(),
-                    request.form.get("student_contact", "").strip(),
                     student_id,
                 ),
             )
@@ -145,9 +165,21 @@ def delete_student(student_id):
 def staff():
     db = get_db()
     rows = db.execute(
-        """SELECT u.*, r.role_name FROM users u JOIN roles r ON r.role_id = u.role_id
-           WHERE r.role_name IN ('Teacher','Coordinator') AND u.status = 'Active'
-           ORDER BY u.full_name"""
+        """
+        SELECT u.user_id, u.username, u.assigned_password, u.full_name, u.email, u.phone, u.status,
+               r.role_name,
+               GROUP_CONCAT(c.grade_name || ' - ' || sec.section_name, ', ') AS assigned_class
+        FROM users u
+        JOIN roles r ON r.role_id = u.role_id
+        LEFT JOIN sections sec ON (
+            (r.role_name = 'Teacher' AND sec.teacher_id = u.user_id) OR
+            (r.role_name = 'Coordinator' AND sec.coordinator_id = u.user_id)
+        )
+        LEFT JOIN classes c ON c.class_id = sec.class_id
+        WHERE r.role_name IN ('Teacher','Coordinator') AND u.status = 'Active'
+        GROUP BY u.user_id, u.username, u.assigned_password, u.full_name, u.email, u.phone, u.status, r.role_name
+        ORDER BY u.full_name
+        """
     ).fetchall()
     return render_template("admin/staff.html", staff=rows)
 
@@ -231,7 +263,7 @@ def add_class():
             "INSERT INTO classes (grade_name) VALUES (?)", (grade_name,)
         ).lastrowid
 
-        db.execute(
+        section_id = db.execute(
             "INSERT INTO sections (class_id, section_name, teacher_id, coordinator_id) VALUES (?, ?, ?, ?)",
             (
                 class_id,
@@ -239,13 +271,78 @@ def add_class():
                 request.form.get("teacher_id") or None,
                 request.form.get("coordinator_id") or None,
             ),
-        )
+        ).lastrowid
+        if request.form.get("teacher_id"):
+            update_staff_section_assignment(db, int(request.form["teacher_id"]), "Teacher", section_id)
+        if request.form.get("coordinator_id"):
+            update_staff_section_assignment(db, int(request.form["coordinator_id"]), "Coordinator", section_id)
         db.commit()
         log_audit(db, session["user_id"], "CLASS_ADDED", f"{grade_name} {request.form['section_name']}", request.remote_addr)
         flash("Class/section added.", "success")
         return redirect(url_for("admin.classes"))
 
     return render_template("admin/class_form.html", teachers=teachers, coordinators=coordinators)
+
+
+@admin_bp.route("/classes/<int:section_id>/edit", methods=["GET", "POST"])
+@role_required("Administrator")
+def edit_class(section_id):
+    db = get_db()
+    section = db.execute(
+        "SELECT sec.section_id, sec.class_id, sec.section_name, sec.teacher_id, sec.coordinator_id, c.grade_name FROM sections sec JOIN classes c ON c.class_id = sec.class_id WHERE sec.section_id=?",
+        (section_id,),
+    ).fetchone()
+    if section is None:
+        flash("Class/section not found.", "error")
+        return redirect(url_for("admin.classes"))
+
+    teachers = db.execute(
+        "SELECT u.user_id, u.full_name FROM users u JOIN roles r ON r.role_id=u.role_id WHERE r.role_name='Teacher' AND u.status='Active'"
+    ).fetchall()
+    coordinators = db.execute(
+        "SELECT u.user_id, u.full_name FROM users u JOIN roles r ON r.role_id=u.role_id WHERE r.role_name='Coordinator' AND u.status='Active'"
+    ).fetchall()
+
+    if request.method == "POST":
+        grade_name = request.form["grade_name"].strip()
+        class_row = db.execute("SELECT class_id FROM classes WHERE grade_name=?", (grade_name,)).fetchone()
+        class_id = class_row["class_id"] if class_row else db.execute(
+            "INSERT INTO classes (grade_name) VALUES (?)", (grade_name,)
+        ).lastrowid
+
+        teacher_id = request.form.get("teacher_id") or None
+        coordinator_id = request.form.get("coordinator_id") or None
+
+        db.execute(
+            "UPDATE sections SET class_id=?, section_name=?, teacher_id=?, coordinator_id=? WHERE section_id=?",
+            (
+                class_id,
+                request.form["section_name"].strip(),
+                teacher_id,
+                coordinator_id,
+                section_id,
+            ),
+        )
+
+        if section["class_id"] != class_id:
+            db.execute("UPDATE classes SET grade_name=? WHERE class_id=?", (grade_name, class_id))
+
+        if section["teacher_id"] != teacher_id:
+            update_staff_section_assignment(db, section["teacher_id"], "Teacher", None)
+            if teacher_id:
+                update_staff_section_assignment(db, int(teacher_id), "Teacher", section_id)
+
+        if section["coordinator_id"] != coordinator_id:
+            update_staff_section_assignment(db, section["coordinator_id"], "Coordinator", None)
+            if coordinator_id:
+                update_staff_section_assignment(db, int(coordinator_id), "Coordinator", section_id)
+
+        db.commit()
+        log_audit(db, session["user_id"], "CLASS_UPDATED", f"{grade_name} {request.form['section_name']}", request.remote_addr)
+        flash("Class/section updated.", "success")
+        return redirect(url_for("admin.classes"))
+
+    return render_template("admin/class_form.html", teachers=teachers, coordinators=coordinators, section=section)
 
 
 @admin_bp.route("/classes/<int:section_id>/delete", methods=["POST"])

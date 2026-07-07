@@ -15,6 +15,7 @@
     <td>{{ s.coordinator_name or 'Unassigned' }}</td>
     <td>{{ s.student_count }}</td>
     <td>
+      <a href="{{ url_for('admin.edit_class', section_id=s.section_id) }}" class="btn btn-small">Edit</a>
       <form method="POST" action="{{ url_for('admin.delete_class', section_id=s.section_id) }}" onsubmit="return confirm('Remove this class/section?');">
         <button class="btn btn-danger btn-small" type="submit">Remove</button>
       </form>

@@ -1,20 +1,20 @@
 {% extends "shared/base.html" %}
-{% block title %}Add Class{% endblock %}
+{% block title %}{% if section %}Edit Class{% else %}Add Class{% endif %}{% endblock %}
 {% block content %}
-<h1>Add Class / Section</h1>
+<h1>{% if section %}Edit Class / Section{% else %}Add Class / Section{% endif %}</h1>
 <div class="form-card">
 <form method="POST">
   <label>Class / Grade Name</label>
-  <input type="text" name="grade_name" placeholder="e.g. Grade 5" required>
+  <input type="text" name="grade_name" value="{{ section.grade_name if section else '' }}" placeholder="e.g. Grade 5" required>
 
   <label>Section Name</label>
-  <input type="text" name="section_name" placeholder="e.g. A" required>
+  <input type="text" name="section_name" value="{{ section.section_name if section else '' }}" placeholder="e.g. A" required>
 
   <label>Class Teacher</label>
   <select name="teacher_id">
     <option value="">-- Unassigned --</option>
     {% for t in teachers %}
-    <option value="{{ t.user_id }}">{{ t.full_name }}</option>
+    <option value="{{ t.user_id }}" {% if section and section.teacher_id == t.user_id %}selected{% endif %}>{{ t.full_name }}</option>
     {% endfor %}
   </select>
 
@@ -22,11 +22,11 @@
   <select name="coordinator_id">
     <option value="">-- Unassigned --</option>
     {% for c in coordinators %}
-    <option value="{{ c.user_id }}">{{ c.full_name }}</option>
+    <option value="{{ c.user_id }}" {% if section and section.coordinator_id == c.user_id %}selected{% endif %}>{{ c.full_name }}</option>
     {% endfor %}
   </select>
 
-  <button type="submit" class="btn">Save</button>
+  <button type="submit" class="btn">{% if section %}Update{% else %}Save{% endif %}</button>
 </form>
 </div>
 {% endblock %}
